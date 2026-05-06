@@ -1,0 +1,9 @@
+logs/*
+mariadb_data/*
+.vscode
+.env
+vendor/*
+.phpunit.cache
+.phpunit.result.cache
+build/logs
+.php-cs-fixer.cache
