@@ -1,1 +1,3 @@
 node_modules/*
+certs/localhost.crt
+certs/localhost.key

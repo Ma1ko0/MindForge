@@ -1,4 +1,4 @@
-FROM php:8-alpine
+FROM php:8-fpm-alpine
 
 # System dependencies for hashing + mysql
 RUN apk add --no-cache \
@@ -12,4 +12,19 @@ RUN apk add --no-cache \
 # PHP Extensions
 RUN docker-php-ext-install pdo pdo_mysql mysqli sodium
 
+# Copy PHP-FPM configuration
+COPY php-fpm.conf /usr/local/etc/php-fpm.conf
+COPY php.ini /usr/local/etc/php/php.ini
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+# Make entrypoint executable
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 WORKDIR /var/www
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:9000/ping || exit 1
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["php-fpm"]

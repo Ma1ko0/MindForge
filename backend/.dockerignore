@@ -1,0 +1,13 @@
+.git
+.gitignore
+.dockerignore
+.env.local
+.env.*.local
+.vscode
+.idea
+*.log
+node_modules
+vendor
+__pycache__
+.pytest_cache
+.DS_Store
