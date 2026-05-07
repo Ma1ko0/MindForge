@@ -1,0 +1,25 @@
+<div class="Sidebar d-flex flex-column bg-dark text-white">
+	<div class="sidebar-brand d-flex align-items-center justify-content-center py-3 border-bottom">
+		<span class="fs-5 fw-bold user-select-none">M</span>
+		<span class="ms-2 d-none d-md-inline user-select-none">MindForge</span>
+	</div>
+
+	<nav class="nav nav-pills flex-column mb-auto pt-3">
+		<button hx-get="/views/main/index.html" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white active d-flex align-items-center">
+			<i class="fas fa-house fa-fw me-2"></i>
+			<span class="nav-label">Dashboard</span>
+		</button>
+		<button hx-get="/views/todo/index.html" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-table-list fa-fw me-2"></i>
+			<span class="nav-label">ToDo-Listen</span>
+		</button>
+		<a href="#settings" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-gear fa-fw me-2"></i>
+			<span class="nav-label">Settings</span>
+		</a>
+	</nav>
+
+	<div id="LoginButton" class="mt-auto p-3 border-top border-white-25">
+		<button hx-get="/views/login/index.html" hx-swap="innerHTML" hx-target="#main-content" class="btn btn-outline-light w-100" type="button">Login</button>
+	</div>
+</div>

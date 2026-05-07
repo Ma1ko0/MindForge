@@ -9,13 +9,17 @@
 	<title>MindForge</title>
 	<script src="./htmx.min.js"></script>
 	<link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css" />
-
-
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+	<link rel="stylesheet" href="./customstyles.css">
 </head>
 
 <body>
-	<div id="main-content">
-		<div hx-get="/views/main/index.html" hx-trigger="load" hx-swap="outerHTML"></div>
+	<div class="app-layout d-flex min-vh-100">
+		<div hx-get="/components/Sidebar.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+		<div id="main-content" class="flex-grow-1 p-4 bg-body-secondary">
+			<div hx-get="/views/main/index.html" hx-trigger="load" hx-swap="outerHTML"></div>
+		</div>
 	</div>
 	<script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 

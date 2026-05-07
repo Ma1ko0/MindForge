@@ -1,0 +1,43 @@
+.Sidebar {
+  width: 4.5rem;
+  min-width: 4.5rem;
+  height: 100vh;
+  height: -webkit-fill-available;
+  max-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+}
+
+@media (min-width: 768px) {
+  .Sidebar {
+    width: 14rem;
+    min-width: 14rem;
+  }
+}
+
+.sidebar-brand {
+  min-height: 4rem;
+}
+
+.Sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  padding: 0.75rem 1rem;
+}
+
+.Sidebar .nav-link:hover,
+.Sidebar .nav-link.active {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.Sidebar .nav-label {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .Sidebar .nav-label {
+    display: inline;
+  }
+}
