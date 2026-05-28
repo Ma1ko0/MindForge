@@ -1,3 +1,24 @@
-<div>
-	<h1 class="user-select-none">ToDo-Listen</h1>
+<div class="dashboard-page">
+	<div class="dashboard-header mb-4">
+		<h1 class="display-6 fw-bold mb-1">ToDo-Listen</h1>
+		<p class="text-muted mb-0">Erstelle und verwalte deine Listen.</p>
+	</div>
+
+	<div class="dashboard-card mb-4">
+		<div class="dashboard-card-head">
+			<h2 class="h5 mb-0"><i class="fa-solid fa-plus me-2 text-info"></i>Neue Liste</h2>
+		</div>
+		<div class="dashboard-card-body">
+			<form class="quick-add-form" hx-post="/todo/lists" hx-target="#lists-container" hx-swap="beforeend">
+				<div class="d-flex gap-2">
+					<input class="form-control" type="text" name="name" placeholder="Listenname" required>
+					<button class="btn btn-primary" type="submit"><i class="fa-solid fa-plus"></i></button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div id="lists-container" class="lists-grid" hx-get="/todo/lists" hx-trigger="load" hx-target="#lists-container">
+		<!-- Listen werden hier geladen -->
+	</div>
 </div>

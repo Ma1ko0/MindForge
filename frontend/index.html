@@ -3,24 +3,248 @@
 
 <head>
 	<meta charset="UTF-8">
-	<meta name="htmx-config" content='{"selfRequestsOnly": false}' />
+	<meta name="htmx-config" content='{"selfRequestsOnly": false, "responseHandling": [{"code": "204", "swap": false}, {"code": "[23]..", "swap": true}, {"code": "[45]..", "swap": true, "error": false}]}' />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<title>MindForge</title>
 	<script src="./htmx.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
 	<link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
 	<link rel="stylesheet" href="./customstyles.css">
 </head>
 
 <body>
+	<div id="search-overlay" class="search-overlay" hidden>
+		<div class="search-modal">
+			<div class="search-input-row">
+				<i class="fa-solid fa-magnifying-glass"></i>
+				<input id="search-input" type="search" name="q" autocomplete="off" placeholder="Suche Notizen, Listen, Aufgaben, Blöcke, Projekte …"
+					hx-get="/search" hx-trigger="keyup changed delay:200ms, search" hx-target="#search-results" hx-swap="innerHTML">
+				<kbd class="search-esc">Esc</kbd>
+			</div>
+			<div id="search-results" class="search-results">
+				<div class="search-hint">Tipp mindestens 2 Zeichen ein um zu suchen.</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="app-layout d-flex min-vh-100">
 		<div hx-get="/components/Sidebar.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
 		<div id="main-content" class="flex-grow-1 p-4 bg-body-secondary">
-			<div hx-get="/views/main/index.html" hx-trigger="load" hx-swap="outerHTML"></div>
+			<div hx-get="/dashboard" hx-trigger="load" hx-swap="outerHTML"></div>
 		</div>
 	</div>
+	<script>
+		(function () {
+			if (window.__mindforgeSidebarInit) {
+				return;
+			}
+			window.__mindforgeSidebarInit = true;
+
+			const SIDEBAR_ACTIVE_KEY = 'mindforge.activeSidebarTab';
+
+			function setActiveSidebarTab(button) {
+				const navLinks = document.querySelectorAll('.Sidebar .nav-link');
+				navLinks.forEach(link => link.classList.toggle('active', link === button));
+			}
+
+			function saveActiveSidebarPath(path) {
+				try {
+					sessionStorage.setItem(SIDEBAR_ACTIVE_KEY, path);
+				} catch (error) {
+					console.warn('Unable to save sidebar state', error);
+				}
+			}
+
+			function loadActiveSidebarPath() {
+				try {
+					return sessionStorage.getItem(SIDEBAR_ACTIVE_KEY);
+				} catch (error) {
+					return null;
+				}
+			}
+
+			function activateSidebarTabForPath(path) {
+				if (!path) {
+					return;
+				}
+				const navLinks = document.querySelectorAll('.Sidebar .nav-link[hx-get]');
+				navLinks.forEach(link => {
+					const href = link.getAttribute('hx-get');
+					link.classList.toggle('active', href === path);
+				});
+			}
+
+			document.body.addEventListener('click', function (event) {
+				const button = event.target.closest('.Sidebar .nav-link[hx-get]');
+				if (!button) {
+					return;
+				}
+
+				const targetPath = button.getAttribute('hx-get');
+				if (targetPath) {
+					setActiveSidebarTab(button);
+					saveActiveSidebarPath(targetPath);
+				}
+			});
+
+			function restoreSidebarState() {
+				const savedPath = loadActiveSidebarPath();
+				if (savedPath) {
+					activateSidebarTabForPath(savedPath);
+				}
+			}
+
+			document.body.addEventListener('htmx:afterSwap', function (event) {
+				if (!event.detail || !event.detail.target) {
+					return;
+				}
+
+				const target = event.detail.target;
+				if (target.classList && target.classList.contains('Sidebar')) {
+					restoreSidebarState();
+				}
+			});
+
+			restoreSidebarState();
+		})();
+
+		(function () {
+			if (window.__mindforgeMarkdownInit) {
+				return;
+			}
+			window.__mindforgeMarkdownInit = true;
+
+			function renderOne(el) {
+				const source = el.querySelector('[data-md-source]');
+				const target = el.querySelector('.note-rendered');
+				if (!source || !target) return;
+				const md = source.value;
+				if (typeof marked === 'undefined') {
+					target.textContent = md;
+					return;
+				}
+				target.innerHTML = marked.parse(md);
+				target.querySelectorAll('a[href]').forEach(function (a) {
+					const href = a.getAttribute('href');
+					if (!href || !href.startsWith('/') || href.startsWith('//')) return;
+					a.setAttribute('hx-get', href);
+					a.setAttribute('hx-target', '#main-content');
+					a.setAttribute('hx-swap', 'innerHTML');
+					a.classList.add('note-link');
+				});
+				if (window.htmx) {
+					window.htmx.process(target);
+				}
+			}
+
+			function renderAll(root) {
+				if (!root || !root.querySelectorAll) return;
+				root.querySelectorAll('.note-markdown').forEach(renderOne);
+			}
+
+			document.body.addEventListener('htmx:afterSwap', function (event) {
+				if (event.detail && event.detail.target) {
+					renderAll(event.detail.target);
+				}
+			});
+
+			// Initial pass for any markdown already in the DOM
+			renderAll(document.body);
+		})();
+
+		(function () {
+			if (window.__mindforgeSearchInit) {
+				return;
+			}
+			window.__mindforgeSearchInit = true;
+
+			const overlay = document.getElementById('search-overlay');
+			const input = document.getElementById('search-input');
+			const results = document.getElementById('search-results');
+			if (!overlay || !input || !results) return;
+
+			function open() {
+				overlay.hidden = false;
+				input.value = '';
+				results.innerHTML = '<div class="search-hint">Tipp mindestens 2 Zeichen ein um zu suchen.</div>';
+				setTimeout(function () { input.focus(); }, 30);
+			}
+			function close() {
+				overlay.hidden = true;
+			}
+
+			window.MindForgeSearch = { open: open, close: close };
+
+			document.addEventListener('keydown', function (e) {
+				if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+					e.preventDefault();
+					overlay.hidden ? open() : close();
+				} else if (e.key === 'Escape' && !overlay.hidden) {
+					close();
+				}
+			});
+
+			overlay.addEventListener('click', function (e) {
+				if (e.target === overlay) close();
+			});
+
+			results.addEventListener('click', function (e) {
+				if (e.target.closest('[data-search-result]')) close();
+			});
+		})();
+
+		(function () {
+			if (window.__mindforgeCredentialsInit) {
+				return;
+			}
+			window.__mindforgeCredentialsInit = true;
+
+			if (!('credentials' in navigator) || typeof window.PasswordCredential !== 'function') {
+				return; // Browser kennt die Credential Management API nicht
+			}
+
+			let pending = null;
+
+			document.body.addEventListener('htmx:beforeRequest', function (event) {
+				const cfg = event.detail && event.detail.requestConfig;
+				if (!cfg) return;
+				const path = cfg.path || '';
+				if (path !== '/login' && path !== '/register') return;
+
+				const form = event.detail.elt;
+				if (!form || !form.matches || !form.matches('form[data-mf-auth-form]')) return;
+
+				const pw = form.querySelector('input[type="password"]');
+				const user = form.querySelector('input[autocomplete="username"]');
+				if (!pw || !user || !pw.value || !user.value) return;
+
+				const nameInput = form.querySelector('input[name="username"]');
+				pending = {
+					id: user.value,
+					password: pw.value,
+					name: (nameInput && nameInput.value) ? nameInput.value : user.value
+				};
+			});
+
+			document.body.addEventListener('htmx:afterRequest', function (event) {
+				const cfg = event.detail && event.detail.requestConfig;
+				if (!cfg) return;
+				const path = cfg.path || '';
+				if (path !== '/login' && path !== '/register') return;
+				if (!event.detail.successful) { pending = null; return; }
+				if (!pending) return;
+
+				try {
+					const cred = new window.PasswordCredential(pending);
+					navigator.credentials.store(cred).catch(function () { /* user dismissed or denied */ });
+				} catch (e) { /* ignore */ }
+				pending = null;
+			});
+		})();
+	</script>
 	<script src="/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

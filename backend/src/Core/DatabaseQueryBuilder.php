@@ -99,7 +99,7 @@ class DatabaseQueryBuilder
      */
     public function table(string $table): self
     {
-        $this->validateIdentifier($table);
+        $this->validateTableRef($table);
         $this->table = $table;
         return $this;
     }
@@ -149,9 +149,13 @@ class DatabaseQueryBuilder
      */
     private function addJoin(string $type, string $table, string $first, string $operator, string $second): self
     {
-        $this->validateIdentifier($table);
-        $this->validateIdentifier($first);
-        $this->validateIdentifier($second);
+        $this->validateTableRef($table);
+        $this->validateColumn($first);
+        $this->validateColumn($second);
+        $allowedOperators = ['=', '!=', '<>', '<', '<=', '>', '>='];
+        if (!in_array($operator, $allowedOperators, true)) {
+            throw new \InvalidArgumentException("Invalid join operator: $operator");
+        }
         $this->joinClauses[] = "$type JOIN $table ON $first $operator $second";
         return $this;
     }
@@ -203,7 +207,7 @@ class DatabaseQueryBuilder
      */
     public function where(string $column, string $operator, mixed $value): self
     {
-        $this->validateIdentifier($column);
+        $this->validateColumn($column);
         $allowedOperators = ['=', '!=', '<>', '<', '<=', '>', '>=', 'LIKE', 'IN', 'NOT IN'];
 
         if (!in_array(strtoupper($operator), $allowedOperators, true)) {
@@ -240,7 +244,7 @@ class DatabaseQueryBuilder
      */
     public function whereNotNull(string $column): self
     {
-        $this->validateIdentifier($column);
+        $this->validateColumn($column);
         $this->whereClauses[] = "$column IS NOT NULL";
         return $this;
     }
@@ -255,7 +259,7 @@ class DatabaseQueryBuilder
      */
     public function whereBetween(string $column, array $values): self
     {
-        $this->validateIdentifier($column);
+        $this->validateColumn($column);
         if (count($values) !== 2) {
             throw new \InvalidArgumentException("Values for BETWEEN must be an array with exactly two elements.");
         }
@@ -276,7 +280,7 @@ class DatabaseQueryBuilder
      */
     public function whereNull(string $column): self
     {
-        $this->validateIdentifier($column);
+        $this->validateColumn($column);
         $this->whereClauses[] = "$column IS NULL";
         return $this;
     }
@@ -294,7 +298,7 @@ class DatabaseQueryBuilder
      */
     public function orWhere(string $column, string $operator, mixed $value): self
     {
-        $this->validateIdentifier($column);
+        $this->validateColumn($column);
         $lastClause = array_pop($this->whereClauses);
         $this->where($column, $operator, $value);
         $newClause = array_pop($this->whereClauses);
@@ -310,7 +314,7 @@ class DatabaseQueryBuilder
      */
     public function orWhereNull(string $column): self
     {
-        $this->validateIdentifier($column);
+        $this->validateColumn($column);
         $this->appendOrClause("$column IS NULL");
         return $this;
     }
@@ -345,7 +349,7 @@ class DatabaseQueryBuilder
      */
     public function orderBy(string $column, string $direction = 'ASC'): self
     {
-        $this->validateIdentifier($column);
+        $this->validateColumn($column);
         $direction = strtoupper($direction);
         if (!in_array($direction, ['ASC', 'DESC'])) {
             throw new \InvalidArgumentException("Invalid order direction: $direction");
@@ -440,7 +444,7 @@ class DatabaseQueryBuilder
     public function groupBy(string ...$columns): self
     {
         foreach ($columns as $column) {
-            $this->validateIdentifier($column);
+            $this->validateColumn($column);
             $this->groupBy[] = $column;
         }
         return $this;
@@ -527,7 +531,41 @@ class DatabaseQueryBuilder
     }
 
     /**
-     * Validates a database identifier (e.g., table or column name).
+     * Adds a raw SQL fragment to the WHERE clause. The expression is inlined verbatim
+     * — pass parameters as named placeholders in $bindings to keep things safe.
+     *
+     * Example: ->whereRaw('DATE(updated_at) = CURDATE()')
+     *          ->whereRaw('total > :min', [':min' => 5])
+     *
+     * @param string $expression
+     * @param array<string, mixed> $bindings
+     * @return self
+     */
+    public function whereRaw(string $expression, array $bindings = []): self
+    {
+        $this->whereClauses[] = $expression;
+        foreach ($bindings as $key => $value) {
+            $this->bindings[$key] = $value;
+        }
+        return $this;
+    }
+
+    /**
+     * Adds a raw SQL fragment to the ORDER BY clause.
+     *
+     * Example: ->orderByRaw('FIELD(status, "todo", "doing", "done")')
+     *
+     * @param string $expression
+     * @return self
+     */
+    public function orderByRaw(string $expression): self
+    {
+        $this->orderBy[] = $expression;
+        return $this;
+    }
+
+    /**
+     * Validates a strict identifier (single name without dots) — used for INSERT/UPDATE column keys.
      *
      * @param string $identifier
      * @return void
@@ -536,6 +574,33 @@ class DatabaseQueryBuilder
     {
         if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $identifier)) {
             throw new \InvalidArgumentException("Invalid identifier: $identifier");
+        }
+    }
+
+    /**
+     * Validates a column reference. Allows plain "column" or qualified "table.column"
+     * (alias.column also). Use for WHERE, ORDER BY, GROUP BY, JOIN columns.
+     *
+     * @param string $column
+     * @return void
+     */
+    private function validateColumn(string $column): void
+    {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)?$/', $column)) {
+            throw new \InvalidArgumentException("Invalid column: $column");
+        }
+    }
+
+    /**
+     * Validates a table reference. Allows "Table", "Table alias", "Table AS alias".
+     *
+     * @param string $table
+     * @return void
+     */
+    private function validateTableRef(string $table): void
+    {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*(\s+(AS\s+)?[a-zA-Z_][a-zA-Z0-9_]*)?$/i', $table)) {
+            throw new \InvalidArgumentException("Invalid table reference: $table");
         }
     }
 }

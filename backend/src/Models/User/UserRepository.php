@@ -10,15 +10,13 @@ use Repository;
 
 class UserRepository extends Repository
 {
-    public function getUserById(string $userId): User
+    public function getUserById(string|int $userId): User
     {
         if (empty($userId)) {
             throw new \InvalidArgumentException("User ID cannot be empty");
         }
 
-        if (!is_string($userId)) {
-            throw new \InvalidArgumentException("User ID must be a string");
-        }
+        $userId = (string)$userId;
 
         if (strlen($userId) > 255) {
             throw new \LengthException("User ID is too long");
@@ -37,6 +35,74 @@ class UserRepository extends Repository
             throw new UserNotFoundException();
         }
         return $this->mapRowToUser($result[0]);
+    }
+
+    public function getUserByUsername(string $username): User
+    {
+        if (empty($username)) {
+            throw new \InvalidArgumentException("Username cannot be empty");
+        }
+        if (strlen($username) > 50) {
+            throw new \LengthException("Username is too long");
+        }
+        $table = self::TABLENAME_USER;
+        $result = (new DatabaseQueryBuilder($this->getConnection()))
+            ->select()
+            ->table($table)
+            ->where("username", "=", strtolower($username))
+            ->get();
+        if (sizeof($result) != 1) {
+            throw new UserNotFoundException();
+        }
+        return $this->mapRowToUser($result[0]);
+    }
+
+    public function createUser(string $username, string $email, string $passwordHash): int
+    {
+        if (empty($username)) {
+            throw new \InvalidArgumentException("Username cannot be empty");
+        }
+        if (empty($email)) {
+            throw new \InvalidArgumentException("Email cannot be empty");
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new \InvalidArgumentException("Email is not valid");
+        }
+        if (empty($passwordHash)) {
+            throw new \InvalidArgumentException("Password hash cannot be empty");
+        }
+
+        $table = self::TABLENAME_USER;
+        $builder = (new DatabaseQueryBuilder($this->getConnection()))
+            ->insert([
+                'username' => strtolower($username),
+                'email' => strtolower($email),
+                'password_hash' => $passwordHash,
+            ])
+            ->table($table);
+
+        $builder->execute();
+        return (int)$builder->getLastInsertId();
+    }
+
+    public function usernameExists(string $username): bool
+    {
+        try {
+            $this->getUserByUsername($username);
+            return true;
+        } catch (UserNotFoundException) {
+            return false;
+        }
+    }
+
+    public function emailExists(string $email): bool
+    {
+        try {
+            $this->getUserByEmail($email);
+            return true;
+        } catch (UserNotFoundException) {
+            return false;
+        }
     }
     public function getUserByEmail(string $email): User
     {
@@ -98,7 +164,7 @@ class UserRepository extends Repository
     private function mapRowToUser(array $row): User
     {
         return new User(
-            $row["id"],
+            (int)$row["id"],
             $row["username"],
             $row["email"],
             $row["password_hash"],

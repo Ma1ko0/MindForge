@@ -4,22 +4,56 @@
 		<span class="ms-2 d-none d-md-inline user-select-none">MindForge</span>
 	</div>
 
+	<button type="button" class="sidebar-search-trigger" onclick="window.MindForgeSearch && window.MindForgeSearch.open()" title="Suchen (Ctrl+K)">
+		<i class="fa-solid fa-magnifying-glass"></i>
+		<span class="nav-label">Suchen</span>
+		<kbd class="sidebar-search-kbd nav-label">Ctrl+K</kbd>
+	</button>
+
 	<nav class="nav nav-pills flex-column mb-auto pt-3">
-		<button hx-get="/views/main/index.html" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white active d-flex align-items-center">
+		<button hx-get="/dashboard" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white active d-flex align-items-center">
 			<i class="fas fa-house fa-fw me-2"></i>
 			<span class="nav-label">Dashboard</span>
 		</button>
-		<button hx-get="/views/todo/index.html" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button hx-get="/workflow" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-sun fa-fw me-2"></i>
+			<span class="nav-label">Heute</span>
+		</button>
+		<button hx-get="/habits" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-repeat fa-fw me-2"></i>
+			<span class="nav-label">Habits</span>
+		</button>
+		<button hx-get="/todo" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-table-list fa-fw me-2"></i>
 			<span class="nav-label">ToDo-Listen</span>
 		</button>
-		<a href="#settings" class="nav-link text-white d-flex align-items-center">
+		<button hx-get="/projects" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-folder-open fa-fw me-2"></i>
+			<span class="nav-label">Projekte</span>
+		</button>
+		<button hx-get="/tags" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-hashtag fa-fw me-2"></i>
+			<span class="nav-label">Tags</span>
+		</button>
+		<button hx-get="/calendar" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-calendar-days fa-fw me-2"></i>
+			<span class="nav-label">Kalender</span>
+		</button>
+		<button hx-get="/notes" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-note-sticky fa-fw me-2"></i>
+			<span class="nav-label">Notizen</span>
+		</button>
+		<button hx-get="/daily" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-calendar-day fa-fw me-2"></i>
+			<span class="nav-label">Daily Note</span>
+		</button>
+		<!-- <a class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-gear fa-fw me-2"></i>
 			<span class="nav-label">Settings</span>
-		</a>
+		</a> Aktuell keinen nutzen -->
 	</nav>
 
-	<div id="LoginButton" class="mt-auto p-3 border-top border-white-25">
+	<div id="LoginButton" class="mt-auto p-3 border-top border-white-25" hx-get="/auth/me" hx-trigger="load, auth-changed from:body" >
 		<button hx-get="/views/login/index.html" hx-swap="innerHTML" hx-target="#main-content" class="btn btn-outline-light w-100" type="button">Login</button>
 	</div>
 </div>

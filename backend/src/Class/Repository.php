@@ -8,6 +8,7 @@ class Repository
     protected const TABLENAME_USER = "Users";
     protected const TABLENAME_TODOITEM = "TodoItems";
     protected const TABLENAME_TODOITEMTOUSER = "TodoItemToUser";
+    protected const TABLENAME_TODOLIST = "TodoLists";
     protected PDO $connection;
     public function __construct(PDO $connection)
     {

@@ -25,7 +25,7 @@ class Request
         $this->query = $_GET;
         $this->headers = $this->parseHeaders();
         $this->body = $this->parseBody();
-        $this->postData = $_POST;
+        $this->postData = $this->parsePostData();
         $this->files = $_FILES;
     }
 
@@ -61,6 +61,36 @@ class Request
     private function parseBody(): ?string
     {
         return file_get_contents('php://input') ?: null;
+    }
+
+    private function parsePostData(): array
+    {
+        // If $_POST has data, use it
+        if (!empty($_POST)) {
+            return $_POST;
+        }
+
+        // Try to parse from raw body
+        if ($this->body === null) {
+            return [];
+        }
+
+        $contentType = $this->headers['Content-Type'] ?? $_SERVER['CONTENT_TYPE'] ?? '';
+
+        // Parse JSON
+        if (str_contains($contentType, 'application/json')) {
+            $parsed = json_decode($this->body, true);
+            return is_array($parsed) ? $parsed : [];
+        }
+
+        // Parse form data
+        if (str_contains($contentType, 'application/x-www-form-urlencoded')) {
+            $parsed = [];
+            parse_str($this->body, $parsed);
+            return $parsed;
+        }
+
+        return [];
     }
 
     public function getMethod(): Methods
