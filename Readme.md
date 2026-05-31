@@ -15,7 +15,9 @@ It acts as a "second brain" tailored to three areas: **daily tasks**, **coding**
 - 📅 **Daily Note** — One auto-templated note per day with today's tasks, blocks and journal sections
 - 🏷 **Tags** — `#hashtag` syntax across notes, todos and workflow blocks; tag cloud with counts
 - 📅 **Calendar** — Monthly overview with due-dated items as chips
+- 🎵 **Lyrics** — Songs with `[Verse]`/`[Chorus]` sections, live German rhyme analysis (phonetic rule-based), rhyme scheme (A-B-A-B) and rhyme suggestions
 - 🔍 **Global Search (Ctrl+K)** — Cross-module overlay search for notes, lists, items, blocks and projects
+- 📲 **Installable PWA** — Manifest + service worker; install as a windowed app with offline app-shell
 
 ## 🚀 Roadmap
 
@@ -36,11 +38,13 @@ It acts as a "second brain" tailored to three areas: **daily tasks**, **coding**
 - Auto-save in note editor with status indicator
 - Markdown toolbar (Bold / Italic / Link / List / Code)
 
-### Music — Lyrics module (needs library research first)
+### Music — Lyrics module ✅ done
 
-- 🎵 Songs with section markers (Verse / Chorus / Bridge)
-- Rhyme detection — likely needs a phoneme / pronunciation library rather than naïve last-N-chars matching for usable German results
-- Optional: rhyme suggestions, syllable count, scheme overview (A-B-A-B)
+- [x] Songs with section markers (`[Verse]` / `[Chorus]` / `[Bridge]`)
+- [x] Rhyme detection — custom German phonetic rule-based analyzer (Auslautverhärtung, diphthong & long-vowel normalization on the rhyme tail) in `frontend/rhyme.js`
+- [x] Rhyme scheme overview (A-B-A-B per section) + colored rhyme highlighting
+- [x] Rhyme suggestions from a seed word list + the user's own growing lyrics corpus
+- Future: syllable count / meter, larger bundled dictionary
 
 ### Tier 3 — Ambitious / future
 

@@ -11,46 +11,50 @@
 	</button>
 
 	<nav class="nav nav-pills flex-column mb-auto pt-3">
-		<button hx-get="/dashboard" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white active d-flex align-items-center">
+		<button data-nav-id="dashboard" hx-get="/dashboard" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white active d-flex align-items-center">
 			<i class="fas fa-house fa-fw me-2"></i>
 			<span class="nav-label">Dashboard</span>
 		</button>
-		<button hx-get="/workflow" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="workflow" hx-get="/workflow" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-sun fa-fw me-2"></i>
 			<span class="nav-label">Heute</span>
 		</button>
-		<button hx-get="/habits" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="habits" hx-get="/habits" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-repeat fa-fw me-2"></i>
 			<span class="nav-label">Habits</span>
 		</button>
-		<button hx-get="/todo" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="todo" hx-get="/todo" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-table-list fa-fw me-2"></i>
 			<span class="nav-label">ToDo-Listen</span>
 		</button>
-		<button hx-get="/projects" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="projects" hx-get="/projects" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-folder-open fa-fw me-2"></i>
 			<span class="nav-label">Projekte</span>
 		</button>
-		<button hx-get="/tags" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="tags" hx-get="/tags" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-hashtag fa-fw me-2"></i>
 			<span class="nav-label">Tags</span>
 		</button>
-		<button hx-get="/calendar" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="calendar" hx-get="/calendar" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-calendar-days fa-fw me-2"></i>
 			<span class="nav-label">Kalender</span>
 		</button>
-		<button hx-get="/notes" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="notes" hx-get="/notes" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-note-sticky fa-fw me-2"></i>
 			<span class="nav-label">Notizen</span>
 		</button>
-		<button hx-get="/daily" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="daily" hx-get="/daily" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-calendar-day fa-fw me-2"></i>
 			<span class="nav-label">Daily Note</span>
 		</button>
-		<!-- <a class="nav-link text-white d-flex align-items-center">
+		<button data-nav-id="lyrics" hx-get="/lyrics" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
+			<i class="fas fa-music fa-fw me-2"></i>
+			<span class="nav-label">Lyrics</span>
+		</button>
+		<button data-nav-id="settings" hx-get="/views/settings/index.html" hx-swap="innerHTML" hx-target="#main-content" class="nav-link text-white d-flex align-items-center">
 			<i class="fas fa-gear fa-fw me-2"></i>
-			<span class="nav-label">Settings</span>
-		</a> Aktuell keinen nutzen -->
+			<span class="nav-label">Einstellungen</span>
+		</button>
 	</nav>
 
 	<div id="LoginButton" class="mt-auto p-3 border-top border-white-25" hx-get="/auth/me" hx-trigger="load, auth-changed from:body" >

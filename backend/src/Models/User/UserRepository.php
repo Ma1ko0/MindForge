@@ -161,6 +161,21 @@ class UserRepository extends Repository
         return new Response()->text($result);
     }
 
+    public function updatePasswordHashById(int $userId, string $hash): bool
+    {
+        if ($userId <= 0) {
+            throw new \InvalidArgumentException("User ID must be positive");
+        }
+        if ($hash === '' || strlen($hash) > 255) {
+            throw new \InvalidArgumentException("Invalid hash");
+        }
+        return (new DatabaseQueryBuilder($this->getConnection()))
+            ->update(["password_hash" => $hash])
+            ->table(self::TABLENAME_USER)
+            ->where("id", "=", $userId)
+            ->execute();
+    }
+
     private function mapRowToUser(array $row): User
     {
         return new User(

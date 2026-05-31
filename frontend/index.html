@@ -6,9 +6,30 @@
 	<meta name="htmx-config" content='{"selfRequestsOnly": false, "responseHandling": [{"code": "204", "swap": false}, {"code": "[23]..", "swap": true}, {"code": "[45]..", "swap": true, "error": false}]}' />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
+	<!-- Apply saved theme before paint to avoid a flash of the wrong theme -->
+	<script>
+		(function () {
+			try {
+				var s = JSON.parse(localStorage.getItem('mindforge.settings') || '{}');
+				if (s.theme === 'light' || s.theme === 'dark') {
+					document.documentElement.setAttribute('data-bs-theme', s.theme);
+				}
+			} catch (e) {}
+		})();
+	</script>
+
 	<title>MindForge</title>
+	<link rel="manifest" href="/manifest.json">
+	<meta name="theme-color" content="#60a5fa">
+	<link rel="icon" href="/icon.svg" type="image/svg+xml">
+	<link rel="apple-touch-icon" href="/icon.svg">
 	<script src="./htmx.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+	<script src="./rhyme.js"></script>
+	<script src="./german-words.js"></script>
+	<script src="./english-rhymes.js"></script>
+	<script src="./lyrics-ui.js"></script>
+	<script src="./settings.js"></script>
 	<link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
 	<link rel="stylesheet" href="./customstyles.css">
@@ -33,7 +54,7 @@
 		<div hx-get="/components/Sidebar.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
 		<div id="main-content" class="flex-grow-1 p-4 bg-body-secondary">
-			<div hx-get="/dashboard" hx-trigger="load" hx-swap="outerHTML"></div>
+			<!-- start page is loaded by settings.js (configurable) -->
 		</div>
 	</div>
 	<script>
@@ -153,6 +174,22 @@
 
 			// Initial pass for any markdown already in the DOM
 			renderAll(document.body);
+		})();
+
+		(function () {
+			if (window.__mindforgePwaInit) {
+				return;
+			}
+			window.__mindforgePwaInit = true;
+
+			if ('serviceWorker' in navigator) {
+				window.addEventListener('load', function () {
+					navigator.serviceWorker.register('/sw.js', { scope: '/' })
+						.catch(function (err) {
+							console.warn('SW registration failed', err);
+						});
+				});
+			}
 		})();
 
 		(function () {

@@ -15,6 +15,7 @@ use App\ProjectController;
 use App\SearchController;
 use App\TagController;
 use App\HabitController;
+use App\LyricsController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\JsonContentTypeMiddleware;
 use App\Middleware\RateLimitMiddleware;
@@ -41,6 +42,8 @@ $router->group(['middleware' => [SessionMiddleware::class, ValidationMiddleware:
 
 // Protected web routes (HTML responses for HTMX)
 $router->group(['middleware' => [SessionMiddleware::class, AuthMiddleware::class, ValidationMiddleware::class]], function (Router $router) {
+    $router->put('/auth/password', [UserController::class, 'changePasswordHtml'])->register();
+
     $router->get('/dashboard', [DashboardController::class, 'indexHtml'])->register();
     $router->get('/dashboard/stats', [DashboardController::class, 'statsHtml'])->register();
     $router->get('/dashboard/recent', [DashboardController::class, 'recentHtml'])->register();
@@ -66,6 +69,15 @@ $router->group(['middleware' => [SessionMiddleware::class, AuthMiddleware::class
     $router->delete('/workflow/templates/(\d+)', [WorkflowController::class, 'deleteTemplateHtml'])->register();
     $router->post('/workflow/templates/(\d+)/blocks', [WorkflowController::class, 'addTemplateBlockHtml'])->register();
     $router->delete('/workflow/templates/(\d+)/blocks/(\d+)', [WorkflowController::class, 'deleteTemplateBlockHtml'])->register();
+
+    $router->get('/lyrics', [LyricsController::class, 'indexHtml'])->register();
+    $router->get('/lyrics/search', [LyricsController::class, 'searchHtml'])->register();
+    $router->get('/lyrics/corpus', [LyricsController::class, 'corpusJson'])->register();
+    $router->post('/lyrics', [LyricsController::class, 'createHtml'])->register();
+    $router->get('/lyrics/(\d+)', [LyricsController::class, 'viewHtml'])->register();
+    $router->get('/lyrics/(\d+)/edit', [LyricsController::class, 'editHtml'])->register();
+    $router->put('/lyrics/(\d+)', [LyricsController::class, 'updateHtml'])->register();
+    $router->delete('/lyrics/(\d+)', [LyricsController::class, 'deleteHtml'])->register();
 
     $router->get('/daily', [NoteController::class, 'dailyHtml'])->register();
     $router->get('/notes', [NoteController::class, 'indexHtml'])->register();

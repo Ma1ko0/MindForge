@@ -142,6 +142,49 @@ class UserController extends Controller
         $this->response->text($html);
     }
 
+    public function changePasswordHtml(): void
+    {
+        $userId = $_SESSION['user_id'] ?? null;
+        if (empty($userId)) {
+            $this->response->text($this->alert('Nicht eingeloggt.'), 401);
+        }
+
+        $current = (string)($this->request->getPostData('currentPassword') ?? '');
+        $new     = (string)($this->request->getPostData('newPassword') ?? '');
+        $confirm = (string)($this->request->getPostData('newPasswordConfirm') ?? '');
+
+        if ($current === '' || $new === '') {
+            $this->response->text($this->alert('Bitte alle Felder ausfüllen.'), 400);
+        }
+        if (strlen($new) < 8) {
+            $this->response->text($this->alert('Neues Passwort muss mindestens 8 Zeichen lang sein.'), 400);
+        }
+        if ($new !== $confirm) {
+            $this->response->text($this->alert('Die neuen Passwörter stimmen nicht überein.'), 400);
+        }
+
+        $repo = new UserRepository($this->pdo);
+        try {
+            $user = $repo->getUserById((int)$userId);
+        } catch (UserNotFoundException) {
+            $this->response->text($this->alert('Benutzer nicht gefunden.'), 404);
+            return;
+        }
+
+        if (!password_verify($current, $user->getPasswordHash())) {
+            $this->response->text($this->alert('Aktuelles Passwort ist falsch.'), 401);
+        }
+
+        try {
+            $repo->updatePasswordHashById((int)$userId, password_hash($new, PASSWORD_DEFAULT));
+        } catch (\Throwable $ex) {
+            $this->logger->logging('Password change failed: ' . $ex->getMessage(), ERROR);
+            $this->response->text($this->alert('Konnte Passwort nicht ändern.'), 500);
+        }
+
+        $this->response->text('<div class="alert alert-success mb-0" role="alert"><i class="fa-solid fa-check me-2"></i>Passwort geändert.</div>');
+    }
+
     private function alert(string $message): string
     {
         return '<div class="alert alert-danger" role="alert">' . htmlspecialchars($message) . '</div>';

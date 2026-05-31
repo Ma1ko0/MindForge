@@ -1,0 +1,150 @@
+<div class="dashboard-page">
+	<div class="dashboard-header mb-4">
+		<h1 class="display-6 fw-bold mb-1"><i class="fa-solid fa-gear me-2 text-info"></i>Einstellungen</h1>
+		<p class="text-muted mb-0">Gespeichert auf diesem Gerät (im Browser).</p>
+	</div>
+
+	<div id="settings-root">
+
+		<!-- Theme -->
+		<div class="dashboard-card mb-4">
+			<div class="dashboard-card-head"><h2 class="h5 mb-0"><i class="fa-solid fa-palette me-2 text-info"></i>Darstellung</h2></div>
+			<div class="dashboard-card-body">
+				<label class="form-label small text-muted mb-2">Theme</label>
+				<div class="d-flex gap-2" id="theme-ctl">
+					<button type="button" class="btn theme-opt" data-theme="dark"><i class="fa-solid fa-moon me-2"></i>Dunkel</button>
+					<button type="button" class="btn theme-opt" data-theme="light"><i class="fa-solid fa-sun me-2"></i>Hell</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Start page -->
+		<div class="dashboard-card mb-4">
+			<div class="dashboard-card-head"><h2 class="h5 mb-0"><i class="fa-solid fa-flag me-2 text-info"></i>Startseite</h2></div>
+			<div class="dashboard-card-body">
+				<label class="form-label small text-muted mb-1">Seite die beim Öffnen geladen wird</label>
+				<select class="form-select" id="start-ctl" style="max-width:320px"></select>
+			</div>
+		</div>
+
+		<!-- Sidebar -->
+		<div class="dashboard-card mb-4">
+			<div class="dashboard-card-head"><h2 class="h5 mb-0"><i class="fa-solid fa-bars me-2 text-info"></i>Seitenleiste</h2></div>
+			<div class="dashboard-card-body">
+				<p class="small text-muted mb-3">Reihenfolge mit den Pfeilen ändern, mit dem Auge ein-/ausblenden.</p>
+				<div id="sidebar-ctl" class="settings-navlist"></div>
+			</div>
+		</div>
+
+		<!-- Lyrics -->
+		<div class="dashboard-card mb-4">
+			<div class="dashboard-card-head"><h2 class="h5 mb-0"><i class="fa-solid fa-music me-2 text-info"></i>Lyrics</h2></div>
+			<div class="dashboard-card-body">
+				<label class="form-check form-switch mb-0">
+					<input class="form-check-input" type="checkbox" id="rhyme-ctl">
+					<span class="ms-1">Reimfarben standardmäßig anzeigen</span>
+				</label>
+			</div>
+		</div>
+
+	</div>
+
+	<!-- Account / password (server-side) -->
+	<div class="dashboard-card mb-4">
+		<div class="dashboard-card-head"><h2 class="h5 mb-0"><i class="fa-solid fa-key me-2 text-info"></i>Passwort ändern</h2></div>
+		<div class="dashboard-card-body">
+			<form class="workflow-form" hx-put="/auth/password" hx-target="#password-result" hx-swap="innerHTML"
+				hx-on::after-request="if(event.detail.successful) this.reset()">
+				<div class="row g-2" style="max-width:520px">
+					<div class="col-12"><input class="form-control" type="password" name="currentPassword" placeholder="Aktuelles Passwort" autocomplete="current-password" required></div>
+					<div class="col-12"><input class="form-control" type="password" name="newPassword" placeholder="Neues Passwort (min. 8 Zeichen)" autocomplete="new-password" minlength="8" required></div>
+					<div class="col-12"><input class="form-control" type="password" name="newPasswordConfirm" placeholder="Neues Passwort bestätigen" autocomplete="new-password" minlength="8" required></div>
+					<div class="col-12"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-2"></i>Passwort ändern</button></div>
+				</div>
+			</form>
+			<div id="password-result" class="mt-2"></div>
+		</div>
+	</div>
+</div>
+
+<script>
+	(function () {
+		var S = window.MindForgeSettings;
+		var root = document.getElementById('settings-root');
+		if (!S || !root) return;
+
+		function esc(s) { return (s || '').replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+
+		function renderTheme(s) {
+			root.querySelectorAll('.theme-opt').forEach(function (b) {
+				b.classList.toggle('active', b.getAttribute('data-theme') === s.theme);
+			});
+		}
+
+		function renderStart(s) {
+			var sel = root.querySelector('#start-ctl');
+			sel.innerHTML = S.NAV.map(function (n) {
+				return '<option value="' + n.id + '"' + (n.id === s.startPage ? ' selected' : '') + '>' + esc(n.label) + '</option>';
+			}).join('');
+		}
+
+		function renderSidebar(s) {
+			var box = root.querySelector('#sidebar-ctl');
+			var order = s.sidebarOrder;
+			box.innerHTML = order.map(function (id, i) {
+				var n = S.NAV.find(function (x) { return x.id === id; });
+				if (!n) return '';
+				var hidden = s.sidebarHidden.indexOf(id) !== -1;
+				return '<div class="settings-navrow' + (hidden ? ' is-hidden' : '') + '">'
+					+ '<i class="fa-solid ' + n.icon + ' fa-fw settings-navicon"></i>'
+					+ '<span class="settings-navlabel">' + esc(n.label) + '</span>'
+					+ '<div class="settings-navactions">'
+					+ '<button type="button" class="btn-icon btn-icon-sm" data-act="up" data-id="' + id + '"' + (i === 0 ? ' disabled' : '') + '><i class="fa-solid fa-chevron-up"></i></button>'
+					+ '<button type="button" class="btn-icon btn-icon-sm" data-act="down" data-id="' + id + '"' + (i === order.length - 1 ? ' disabled' : '') + '><i class="fa-solid fa-chevron-down"></i></button>'
+					+ '<button type="button" class="btn-icon btn-icon-sm" data-act="toggle" data-id="' + id + '" title="Ein-/Ausblenden"><i class="fa-solid ' + (hidden ? 'fa-eye-slash' : 'fa-eye') + '"></i></button>'
+					+ '</div></div>';
+			}).join('');
+		}
+
+		function renderRhyme(s) {
+			root.querySelector('#rhyme-ctl').checked = s.rhymeColors !== false;
+		}
+
+		function renderAll() {
+			var s = S.get();
+			renderTheme(s); renderStart(s); renderSidebar(s); renderRhyme(s);
+		}
+
+		root.addEventListener('click', function (e) {
+			var themeBtn = e.target.closest('.theme-opt');
+			if (themeBtn) { S.set({ theme: themeBtn.getAttribute('data-theme') }); renderAll(); return; }
+
+			var act = e.target.closest('[data-act]');
+			if (!act) return;
+			var id = act.getAttribute('data-id');
+			var s = S.get();
+			var order = s.sidebarOrder.slice();
+			var idx = order.indexOf(id);
+			if (act.getAttribute('data-act') === 'up' && idx > 0) {
+				order.splice(idx - 1, 0, order.splice(idx, 1)[0]);
+				S.set({ sidebarOrder: order });
+			} else if (act.getAttribute('data-act') === 'down' && idx < order.length - 1) {
+				order.splice(idx + 1, 0, order.splice(idx, 1)[0]);
+				S.set({ sidebarOrder: order });
+			} else if (act.getAttribute('data-act') === 'toggle') {
+				var hidden = s.sidebarHidden.slice();
+				var h = hidden.indexOf(id);
+				if (h === -1) hidden.push(id); else hidden.splice(h, 1);
+				S.set({ sidebarHidden: hidden });
+			}
+			renderAll();
+		});
+
+		root.addEventListener('change', function (e) {
+			if (e.target.id === 'start-ctl') { S.set({ startPage: e.target.value }); }
+			else if (e.target.id === 'rhyme-ctl') { S.set({ rhymeColors: e.target.checked }); }
+		});
+
+		renderAll();
+	})();
+</script>

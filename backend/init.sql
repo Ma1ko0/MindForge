@@ -134,5 +134,20 @@ CREATE TABLE `WorkflowTemplateBlocks` (
   INDEX idx_template (templateId, sortOrder)
 );
 
+CREATE TABLE `Lyrics` (
+  `id` int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  `userId` int(11) NOT NULL,
+  `projectId` int(11) NULL,
+  `title` varchar(200) NOT NULL,
+  `content` MEDIUMTEXT,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  FOREIGN KEY (userId) REFERENCES Users(id) ON DELETE CASCADE,
+  FOREIGN KEY (projectId) REFERENCES Projects(id) ON DELETE SET NULL,
+  INDEX idx_user (userId),
+  INDEX idx_user_updated (userId, updated_at),
+  INDEX idx_project (projectId)
+);
+
 -- Insert some sample data
 INSERT INTO Users (username, email, password_hash) VALUES ('TestUser', 'test@mail.com', "somehash1");
